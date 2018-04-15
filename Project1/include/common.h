@@ -48,7 +48,16 @@ int nprocs;
 int myrank;
 
 //------------------------------------------------------------------------//
-
+//Geometrical data of nodes
+int nodes;
+struct nodeData
+{
+    double len;
+    double De;
+    double Ax;
+    double Ph;
+    double DeltaH;    
+};
 
 
 

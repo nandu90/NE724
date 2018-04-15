@@ -13,52 +13,68 @@ Created: 2018-03-04
 //reading everything.
 
 //REACTOR
-double power = 3411.0E6; //in watts
-double cHeight = 144.0;    //in inches (why!!! :( )
-int nRodLoc = 55777;
-int nRodFuel = 50952;
-double dRod = 0.374;
-double dPellet = 0.3225;
-double cladThic = 0.0225;
-double gapConduct = 1000.0;
-double cladConduct = 9.6;
-double rodPitch = 0.496;
-int nSpacerGrid = 8;
-double gridLossCoeff = 0.5;
-double massFlux = 2.48E6;
-double inletTemp = 552.0;
-double outletTemp = 616.0;
-double pressure = 2250;
-double cInLossCoeff = 4.25;
-double cOutLossCoeff = 4.25;
+double power; //in watts
+double cHeight;    //in inches (why!!! :( )
+int nRodLoc;
+int nRodFuel;
+double dRod;
+double dPellet;
+double cladThic;
+double gapConduct;
+double cladConduct;
+double rodPitch;
+int nSpacerGrid;
+double gridLossCoeff;
+double massFlux;
+double inletTemp;
+double outletTemp;
+double pressure;
+double cInLossCoeff;
+double cOutLossCoeff;
 
 //UPPER PLENUM
-double UPLen = 1.5;
-double UPDia = 158;
-double UPVol = 1373.7;
+double UPLen;
+double UPDia;
+double UPVol;
 
 //HOT LEGS
-int nHL = 4;
-double HLLen = 20.0;
-double HLDia = 29.0;
-double HLEqLD = 20.0;
-double HLInLossCoeff = 0.5;
-double HLOutLossCoeff = 1.0;
+int nHL;
+double HLLen;
+double HLDia;
+double HLEqLD;
+double HLInLossCoeff;
+double HLOutLossCoeff;
 
 //STEAM GENERATORS
-int nSG = 4;
-double secPressure = 1000.0;
-int nSGTubes = 6633;
-double SGTubeInDia = 0.6075;
-double SGTubeLen = 66.8;
-double BendEqLD = 55.0;
-double BundInLossCoeff = 0.5;
-double BundOutLossCoeff = 1.0;
+int nSG;
+double secPressure;
+int nSGTubes;
+double SGTubeInDia;
+double SGTubeLen;
+double BendEqLD;
+double BundInLossCoeff;
+double BundOutLossCoeff;
 
 //COLD LEGS
+int nCL;
+double CLLen;
+double CLDia;
+double CLInLossCoeff;
+double CLOutLossCoeff;
+double CLEqLD;
+
+//DOWNCOMER
+double DCInDia;
+double DCOutDia;
+double DCLen;
+
+//LOWER PLENUM
+double LPLen;
+double LPDia;
+double LPVol;
 
 
-//All input variables to be read from the control file are specified here
+//------------------------------------------------------------------------//
 
 
 
