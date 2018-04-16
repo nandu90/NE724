@@ -76,6 +76,19 @@ double LPVol;
 
 //------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------//
+//Inputs
+double iniP;
+double iniMu;
+double iniRho;
+double iniMcdot;
+double iniM1dot;
+
+double finalTime;
+double maxNewton;
+double iniDeltat;
+//------------------------------------------------------------------------//
+
 
 
 

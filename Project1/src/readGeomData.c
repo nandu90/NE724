@@ -30,10 +30,11 @@ void geomData(struct nodeData* nData)
 
 	int index = 0;
 
-	printf("Number of nodes = %d\n\n",nodes);
+	//printf("Number of nodes = %d\n\n",nodes);
 	while((size = getline(&line, &len, datafile)) != -1)
 	{
 	    word = strtok(line, delim);
+	    strcpy(components[index],word);
 	    while(word != NULL)
 	    {		
 		word = strtok(NULL,delim);
@@ -67,7 +68,7 @@ void geomData(struct nodeData* nData)
 	int i;
 	for(i=0; i<nodes; i++)
 	{
-	    printf("%d %.2f %.2f %.2f %.2f %.2f\n\n",i, nData[i].len, nData[i].De, nData[i].Ax, nData[i].Ph, nData[i].DeltaH);
+	    printf("%d %.2f %.2f %.2f %.2f %.2f %s\n\n",i, nData[i].len, nData[i].De, nData[i].Ax, nData[i].Ph, nData[i].DeltaH, components[i]);
 	}
     }
 }

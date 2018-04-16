@@ -40,6 +40,51 @@ void control()
 		    word = strtok(NULL,delim);
 		    nodes = atoi(word);
 		}
+		if(strcmp(word,"Number_of_loops") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    nloops = atoi(word);
+		}
+		if(strcmp(word,"System_pressure") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniP = atof(word);
+		}
+		if(strcmp(word,"Density") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniRho = atof(word);
+		}
+		if(strcmp(word,"Viscosity") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniMu = atof(word);
+		}
+		if(strcmp(word,"Core_Flow_Rate") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniMcdot = atof(word);
+		}
+		if(strcmp(word,"Loop1_Flow_Rate") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniM1dot = atof(word);
+		}
+		if(strcmp(word,"Totaltime") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    finalTime = atof(word);
+		}
+		if(strcmp(word,"Max_Newton_Iterations") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    maxNewton = atof(word);
+		}
+		if(strcmp(word,"Time_Step_Size") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    iniDeltat = atof(word);
+		}
 		word = strtok(NULL,delim);
 	    }
 	}

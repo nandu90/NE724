@@ -17,6 +17,7 @@
 
 ///Standard Libraries to include
 #define PI 3.1415926535897
+#define GRAVITY 9.81
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -50,6 +51,7 @@ int myrank;
 //------------------------------------------------------------------------//
 //Geometrical data of nodes
 int nodes;
+char **components;
 struct nodeData
 {
     double len;
@@ -58,6 +60,14 @@ struct nodeData
     double Ph;
     double DeltaH;    
 };
+//------------------------------------------------------------------------//
+
+//------------------------------------------------------------------------//
+//Inputs from control file
+int nloops;
+
+//------------------------------------------------------------------------//
+
 
 
 
