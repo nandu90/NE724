@@ -79,6 +79,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     *a = term1 + 2.0*(term2 + term3)*fabs(mdot);
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
 
+    *a = (*a)/GC;
+    *b = (*b)/GC;
     //printf(" a and b = %.4f %.4f\n", *a, *b);
     //printf("Buoyancy term in loop = %.4e\n",term4);
 
@@ -96,19 +98,23 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     
     double F;
     double kin, kout;
+    int i;
 
-    getgeom(&len,&area,&dia, &deltaH,  0,nData);
-
-    term1 = len/(area*deltat);
-
-    F = frictionFactor(mdot, mu, dia, area,0);
-
-    term2 = F*len/(dia*area*area*2.0*rho);
-
+    for(i=0; i<4; i++)
+    {
+	getgeom(&len,&area,&dia, &deltaH,  i,nData);
+	
+	term1 += len/(area*deltat);
+	
+	F = frictionFactor(mdot, mu, dia, area,i);
+	
+	term2 += F*len/(dia*area*area*2.0*rho);
+    }
     kin = cInLossCoeff;
     kout = cOutLossCoeff;
-
+    
     term3 = (kin + kout)/(2.0*rho*area*area);
+    
 
     *a = term1 + 2.0*(term2 + term3)*fabs(mdot);
     
@@ -116,7 +122,6 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     //------------------------------------------------------------------------//
     //Get the buoyancy term
     int index[6] = {0,1,2,3,4,15};
-    int i;
     for(i=0; i<6; i++)
     {
 	getgeom(&len,&area,&dia,&deltaH,index[i],nData);
@@ -124,7 +129,9 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     }
 
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
-    
+
+    *a = (*a)/GC;
+    *b = (*b)/GC;
     //printf("Buoyancy term in core = %.4e\n",term4);
 }
     

@@ -131,10 +131,10 @@ int main(int argc, char **argv)
 
 	    if(fabs(change) < 1e-8)
 	    {
-		printf("Newton's Iteration converged in %d iterations",iNewton+1);
+		printf("Newton's Method converged in %d iterations",iNewton+1);
 		break;
 	    }
-	    
+	    printf("\n");
 	}
 
 	printf("\n\n");
