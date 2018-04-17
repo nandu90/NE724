@@ -8,11 +8,13 @@ Created: 2018-04-15
 #include "common.h"
 #include "correlations.h"
 
-double frictionFactor(double mdot, double mu, double D, double area)
+double frictionFactor(double mdot, double mu, double D, double area, int index)
 {
     double f;
     double Re;
-    Re = D*mdot/(area*mu);
+    Re = fabs(D*mdot/(area*mu));
+
+    printf("Reynolds number in %s is %.2e\n",components[index],Re);
 
     double f1, f2;
     if(Re >= 640.0 && Re <= 2300.0)

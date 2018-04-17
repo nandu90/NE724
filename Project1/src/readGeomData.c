@@ -43,7 +43,7 @@ void geomData(struct nodeData* nData)
 		nData[index].len = atof(word);
 		
 		word = strtok(NULL,delim);
-		nData[index].De = atof(word);
+		nData[index].De = atof(word) * 0.0833333; //Convert to feet
 		
 		word = strtok(NULL,delim);
 		nData[index].Ax = atof(word);
@@ -77,33 +77,33 @@ void geomData(struct nodeData* nData)
 void problemData()
 {
      power = 3411.0E6; //in watts
-     cHeight = 144.0;    //in inches (why!!! :( )
+     cHeight = 144.0 * 0.083333;    //in feet (why!!! :( )
      nRodLoc = 55777;
      nRodFuel = 50952;
-     dRod = 0.374;
-     dPellet = 0.3225;
-     cladThic = 0.0225;
-     gapConduct = 1000.0;
-     cladConduct = 9.6;
-     rodPitch = 0.496;
+     dRod = 0.374 * 0.083333;
+     dPellet = 0.3225 * 0.083333;
+     cladThic = 0.0225 * 0.083333;
+     gapConduct = 0.278;
+     cladConduct = 0.003;
+     rodPitch = 0.496 * 0.083333;
      nSpacerGrid = 8;
      gridLossCoeff = 0.5;
-     massFlux = 2.48E6;
+     massFlux = 688.889;
      inletTemp = 552.0;
      outletTemp = 616.0;
-     pressure = 2250;
+     pressure = 2250;         //No need to convert to pounds per sq foot. Only used for determining properties. Not used in calculation anywhere
      cInLossCoeff = 4.25;
      cOutLossCoeff = 4.25;
     
 //UPPER PLENUM
      UPLen = 1.5;
-     UPDia = 158;
+     UPDia = 158.0*0.0833333;
      UPVol = 1373.7;
     
 //HOT LEGS
      nHL = 4;
      HLLen = 20.0;
-     HLDia = 29.0;
+     HLDia = 29.0*0.0833333;
      HLEqLD = 20.0;
      HLInLossCoeff = 0.5;
      HLOutLossCoeff = 1.0;
@@ -112,7 +112,7 @@ void problemData()
      nSG = 4;
      secPressure = 1000.0;
      nSGTubes = 6633;
-     SGTubeInDia = 0.6075;
+     SGTubeInDia = 0.6075*0.083333;
      SGTubeLen = 66.8;
      BendEqLD = 55.0;
      BundInLossCoeff = 0.5;
@@ -121,18 +121,18 @@ void problemData()
 //COLD LEGS
      nCL = 4;
      CLLen = 40.0;
-     CLDia = 27.5;
+     CLDia = 27.5*0.0833333;
      CLInLossCoeff = 0.5;
      CLOutLossCoeff = 4.6;
      CLEqLD = 18.0;
     
 //DOWNCOMER
-     DCInDia = 173.0;
-     DCOutDia = 158.0;
+     DCInDia = 173.0*0.083333;
+     DCOutDia = 158.0*0.083333;
      DCLen = 18.4;
     
 //LOWER PLENUM
      LPLen = 7.2;
-     LPDia = 173.0;
+     LPDia = 173.0*0.083333;
      LPVol = 784.4;
 }

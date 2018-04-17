@@ -96,6 +96,7 @@ int main(int argc, char **argv)
     double rhoold = rho;
     //------------------------------------------------------------------------//
 
+    printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rho);
     
     while(t <= finalTime)//(fabs(mcdot) > 1e-8)
     {
@@ -125,10 +126,10 @@ int main(int argc, char **argv)
 	    printf("Newton Iteration = %d\n", iNewton+1);
 	    printf("Core Mass Flow rate = %.4e\n", mcdot);
 	    printf("Relative change in mass core flow rate = %.4e\n", change);
-
+	    printf("Pressure drop across the core = %.4e\n",deltaPcore);
 	    mcCheck = mcdot;
 
-	    if(change < 1e-5)
+	    if(fabs(change) < 1e-8)
 	    {
 		printf("Newton's Iteration converged in %d iterations",iNewton+1);
 		break;

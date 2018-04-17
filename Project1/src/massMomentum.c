@@ -41,7 +41,7 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	term1 += len/(area*deltat);
 	
 	//Get the friction factor
-	F = frictionFactor(mdot, mu, dia, area);
+	F = frictionFactor(mdot, mu, dia, area,index);
 	term2 += (F*len/(dia))*pow(1/area,2.0);
 	
 	if(index == 5)
@@ -80,6 +80,7 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
 
     //printf(" a and b = %.4f %.4f\n", *a, *b);
+    //printf("Buoyancy term in loop = %.4e\n",term4);
 
     
 }
@@ -100,7 +101,7 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 
     term1 = len/(area*deltat);
 
-    F = frictionFactor(mdot, mu, dia, area);
+    F = frictionFactor(mdot, mu, dia, area,0);
 
     term2 = F*len/(dia*area*area*2.0*rho);
 
@@ -124,6 +125,6 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
     
-    
+    //printf("Buoyancy term in core = %.4e\n",term4);
 }
     
