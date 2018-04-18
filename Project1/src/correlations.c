@@ -14,7 +14,7 @@ double frictionFactor(double mdot, double mu, double D, double area, int index)
     double Re;
     Re = fabs(D*mdot/(area*mu));
 
-    printf("Reynolds number in %s is %.2e\n",components[index],Re);
+    //printf("Reynolds number in %s is %.2e\n",components[index],Re);
 
     double f1, f2;
     if(Re >= 640.0 && Re <= 2300.0)

@@ -6,10 +6,13 @@ Number_of_loops 6
 System_pressure 2250
 Density 62.4104              //lb/ft^3
 Viscosity 4.584E-4         //lb/ft*s
-Core_Flow_Rate 1.0
-Loop1_Flow_Rate 0.5
+Core_Flow_Rate 0.0
+Loop1_Flow_Rate 0.0
 
 //Time Control
-Totaltime 0.0
+Totaltime 100.0
 Max_Newton_Iterations 10
-Time_Step_Size 1000.0
+Time_Step_Size 0.001
+
+//Target Values
+Target_Mass_Flow_Rate 688.889

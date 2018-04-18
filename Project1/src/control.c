@@ -85,6 +85,11 @@ void control()
 		    word = strtok(NULL,delim);
 		    iniDeltat = atof(word);
 		}
+		if(strcmp(word,"Target_Mass_Flow_Rate") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    targetMdot = atof(word);
+		}
 		word = strtok(NULL,delim);
 	    }
 	}
