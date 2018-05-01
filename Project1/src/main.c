@@ -154,12 +154,16 @@ int main(int argc, char **argv)
 	if(fabs(error) > 1e-8)
 	{
 	    RCP += 0.1*error + 0.1*(volFlowRate - volFlowRateOld)*deltat;
+	    printf("RCP value is %.4e\n",RCP);
 	    
 	}
 	else
 	{
 	    printf("\n\n");
 	    printf("Steady State Acheived in %d time steps at time %.4f secs\n",iter,t);
+	    printf("Mass flow rate of Loop1 %.4e\n",m1dot);
+	    printf("Mass flow rate of Loop2 %.4e\n",m2dot);
+	    printf("Mass flow rate of Core %.4e\n",mcdot);
 	    printf("Rated DeltaP of the pump = %.4f psi",RCP/144.0);
 	}
 
