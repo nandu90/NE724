@@ -98,13 +98,14 @@ int main(int argc, char **argv)
     double RCP = 100.0;
     double volFlowRate=0.0;
     double volFlowRateOld = 0.0;
-    double error;
+    double error = 100.0;
+    double RCPtol = 1e-8;
     int iter = 0;
     //------------------------------------------------------------------------//
 
     printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rho);
     
-    while(fabs(volFlowRate - targetMdot) > 1e-5)//(t <= finalTime)//(fabs(mcdot) > 1e-8)
+    while(fabs(error) > RCPtol)//(t <= finalTime)//(fabs(mcdot) > 1e-8)
     {
 	iter++;
 	double mcCheck = mcold;
@@ -147,21 +148,11 @@ int main(int argc, char **argv)
 	}
 
 	volFlowRate = mcdot/nData[0].Ax;
+	error = targetMdot - volFlowRate;
 	printf("Volumetric flow Rate in the core = %.2e\n",volFlowRate);
-	printf("Difference between target and required value  = %.2e\n",targetMdot-volFlowRate);
-	if(fabs(volFlowRate - targetMdot) > 1e-5)
+	printf("Difference between target and required value  = %.2e\n",error);
+	if(fabs(error) > 1e-8)
 	{
-	    /*if(volFlowRate < targetMdot)
-	    {
-		printf("Ramping Up RCP DeltaP\n");
-		RCP += 0.1*fabs(volFlowRate - targetMdot);
-	    }
-	    else
-	    {
-		printf("Ramping Down RCP DeltaP\n");
-		RCP -= 0.1*fabs(volFlowRate - targetMdot); 
-		}*/
-	    error = targetMdot - volFlowRate;
 	    RCP += 0.1*error + 0.1*(volFlowRate - volFlowRateOld)*deltat;
 	    
 	}
@@ -169,7 +160,7 @@ int main(int argc, char **argv)
 	{
 	    printf("\n\n");
 	    printf("Steady State Acheived in %d time steps at time %.4f secs\n",iter,t);
-	    printf("Rated DeltaP of the pump = %.4f",RCP);
+	    printf("Rated DeltaP of the pump = %.4f psi",RCP/144.0);
 	}
 
 	printf("\n\n");

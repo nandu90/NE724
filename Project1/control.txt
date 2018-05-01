@@ -1,11 +1,11 @@
 Nodes 16
-Number_of_loops 6
+Number_of_loops 4
 
 
 //Initial Conditions
 System_pressure 2250
-Density 62.4104              //lb/ft^3
-Viscosity 4.584E-4         //lb/ft*s
+Density 37.0906              //lb/ft^3
+Viscosity 4.589E-5         //lb/ft-s
 Core_Flow_Rate 0.0
 Loop1_Flow_Rate 0.0
 
@@ -15,4 +15,4 @@ Max_Newton_Iterations 10
 Time_Step_Size 0.001
 
 //Target Values
-Target_Mass_Flow_Rate 688.889
+Target_Mass_Flow_Rate 688.889  //lb/s-ft^2
