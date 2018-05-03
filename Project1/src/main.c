@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------//
     //Time loop will come here
     double t=0.0;
-    double deltat = iniDeltat;
+    double deltat = iniDeltat*1.0/3600.0;
     int iNewton;
 
     //------------------------------------------------------------------------//

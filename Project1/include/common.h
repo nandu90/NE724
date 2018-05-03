@@ -17,8 +17,8 @@
 
 ///Standard Libraries to include
 #define PI 3.1415926535897
-#define GRAVITY 32.174       //ft/s^2
-#define GC 32.174            //ft/s^2
+#define GRAVITY 416975040.0       //ft/s^2
+#define GC 416975040.0            //ft/s^2
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
