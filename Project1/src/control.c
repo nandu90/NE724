@@ -43,7 +43,7 @@ void control()
 		if(strcmp(word,"Number_of_loops") == 0)
 		{
 		    word = strtok(NULL,delim);
-		    nloops = atoi(word);
+		    nloops = atof(word);
 		}
 		if(strcmp(word,"System_pressure") == 0)
 		{

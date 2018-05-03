@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     double rho = iniRho;
     double rhoold = rho;
 
-    double RCP = 100.0;
+    double RCP = 100.0*144.0;
     double volFlowRate=0.0;
     double volFlowRateOld = 0.0;
     double error = 100.0;
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     int iter = 0;
     //------------------------------------------------------------------------//
 
-    printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rho);
+    printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rho, nloops);
     
     while(fabs(error) > RCPtol)//(t <= finalTime)//(fabs(mcdot) > 1e-8)
     {
@@ -115,19 +115,19 @@ int main(int argc, char **argv)
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
 	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhoold);
-	    b1 += RCP;
+	    b1 += RCP/nloops;
 	    //printf("a1 and b1 outside = %.4f %.4f\n", a1, b1);
 	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhoold);
-	    b2 += RCP;
+	    b2 += RCP/nloops;
 	    //printf("a2 and b2 outside = %.4f %.4f\n", a2, b2);
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhoold);
 	    //printf("ac and bc outside = %.4f %.4f\n", ac, bc);
 	    
 	    //Solution from Cramer's loop for next iteration
-	    m1dot = (b1*a2 + (nloops-1)*b1*ac - (nloops-1)*ac*b2 + a2*bc)/(a1*a2 + (nloops-1)*a1*ac + a2*ac);
+	    m1dot = (b1*a2 + (nloops-1.0)*b1*ac - (nloops-1.0)*ac*b2 + a2*bc)/(a1*a2 + (nloops-1.0)*a1*ac + a2*ac);
 	    deltaPcore = b1 - a1*m1dot;
 	    m2dot = (b2 - deltaPcore)/a2;
-	    mcdot = m1dot + (nloops-1)*m2dot;
+	    mcdot = m1dot + (nloops-1.0)*m2dot;
 
 	    //printf("m dot values = %.4f %.4f %.4f %.4f\n",m1dot,m2dot,mcdot,deltaPcore);
 	    
@@ -161,9 +161,10 @@ int main(int argc, char **argv)
 	{
 	    printf("\n\n");
 	    printf("Steady State Acheived in %d time steps at time %.4f secs\n",iter,t);
-	    printf("Mass flow rate of Loop1 %.4e\n",m1dot);
-	    printf("Mass flow rate of Loop2 %.4e\n",m2dot);
-	    printf("Mass flow rate of Core %.4e\n",mcdot);
+	    printf("Mass flow rate of Loop1 %.4e lbm/s \n",m1dot);
+	    printf("Mass flow rate of Loop2 %.4e lbm/s \n",m2dot);
+	    printf("Mass flow rate of Core %.4e lbm/s \n",mcdot);
+	    printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot*3600.0/nData[0].Ax);
 	    printf("Rated DeltaP of the pump = %.4f psi",RCP/144.0);
 	}
 
