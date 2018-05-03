@@ -161,10 +161,10 @@ int main(int argc, char **argv)
 	{
 	    printf("\n\n");
 	    printf("Steady State Acheived in %d time steps at time %.4f secs\n",iter,t);
-	    printf("Mass flow rate of Loop1 %.4e lbm/s \n",m1dot);
-	    printf("Mass flow rate of Loop2 %.4e lbm/s \n",m2dot);
-	    printf("Mass flow rate of Core %.4e lbm/s \n",mcdot);
-	    printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot*3600.0/nData[0].Ax);
+	    printf("Mass flow rate of Loop1 %.4e lbm/hr \n",m1dot);
+	    printf("Mass flow rate of Loop2 %.4e lbm/hr \n",m2dot);
+	    printf("Mass flow rate of Core %.4e lbm/hr \n",mcdot);
+	    printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot/nData[0].Ax);
 	    printf("Rated DeltaP of the pump = %.4f psi",RCP/144.0);
 	}
 

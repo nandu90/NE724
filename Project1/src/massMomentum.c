@@ -19,7 +19,7 @@ void getgeom(double *len, double *area, double *dia, double *deltaH, int index, 
 
     if(index == 5)                    //Hot Leg
     {
-	(*eqLD) = HLEqLD;
+	(*eqLD) = HLEqLD + (*len)/(*dia);
 	*n = 1.0;
     }
     else if(index >= 6 && index <=12) //Steam Generators
@@ -29,7 +29,7 @@ void getgeom(double *len, double *area, double *dia, double *deltaH, int index, 
     }
     else if(index == 13)              //Cold Leg
     {
-	(*eqLD) = CLEqLD;
+	(*eqLD) = CLEqLD + (*len)/(*dia);
 	*n = 1.0;
     }
     else if(index == 14)                             //Downcomer
@@ -66,8 +66,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	
 	//Get the friction factor
 	F = frictionFactor(mdot, mu, dia, area,index);
-	//term2 += (F *(eqLD))*pow(1.0/area,2.0);
-	term2 += (F *len/dia)*pow(1.0/area,2.0);
+	term2 += (F *(eqLD))*pow(1.0/area,2.0);
+	//term2 += (F *len/dia)*pow(1.0/area,2.0);
 	
 	if(index == 5)
 	{
@@ -132,6 +132,9 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 
     int coreIndex;
 
+    int index[6] = {0,1,2,3,4,15};
+    int i;
+
     for(coreIndex =0; coreIndex<4; coreIndex++)
     {
 	getgeom(&len,&area,&dia, &deltaH,  coreIndex,nData, &eqLD, &n);
@@ -140,7 +143,8 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	term1 += len/(area*deltat);
 	
 	F = frictionFactor(mdot, mu, dia, area,coreIndex);
-	
+
+	//printf ("Friction %.4e \n",F);
 	term2 += (F *(len/dia))*pow(1.0/area,2.0);
 	
 		
@@ -159,8 +163,8 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 
     //------------------------------------------------------------------------//
     //Get the buoyancy term
-    int index[6] = {0,1,2,3,4,15};
-    int i;
+    
+    
     for(i=0; i<6; i++)
     {
 	getgeom(&len,&area,&dia,&deltaH,index[i],nData, &eqLD, &n);
@@ -180,6 +184,9 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 
     //printf("Buoyancy term in core = %.4e\n",term4);
 
+    //printf("ac is %.4e and bc is %.4e\n",*a,*b);
+
+    //exit(1);
 
     //printf("\n");
 }
