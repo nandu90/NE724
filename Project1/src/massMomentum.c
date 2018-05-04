@@ -19,28 +19,27 @@ void getgeom(double *len, double *area, double *dia, double *deltaH, int index, 
 
     if(index == 5)                    //Hot Leg
     {
-	(*eqLD) = HLEqLD + (*len)/(*dia);
+	(*eqLD) = HLEqLD;
 	*n = 1.0;
     }
     else if(index >= 6 && index <=12) //Steam Generators
     {
 	*n = 6633.0;
-	(*eqLD) = (*len)/(*dia) + BendEqLD ;
+	(*eqLD) = (*len)/(*dia) + BendEqLD;
     }
     else if(index == 13)              //Cold Leg
     {
-	(*eqLD) = CLEqLD + (*len)/(*dia);
+	(*eqLD) = CLEqLD;
 	*n = 1.0;
     }
     else if(index == 14)                             //Downcomer
     {
 	(*eqLD) = (*len)/(*dia);
-	//*area = (*area)/4.0;
 	*n = 1.0;
     }
 }
 
-void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double rho, double mu, double rhoold)
+void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys, int code)
 {
     //------------------------------------------------------------------------//
     double len, area, dia, deltaH;
@@ -53,6 +52,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     double kin, kout;
     double eqLD;
     double n;
+
+    double rho, mu;
     //Assemble Loop : Hot leg to Downcomer
     //5    : Hot leg
     //6-12 : Steam Generators
@@ -61,6 +62,16 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     int index;
     for(index=5; index < 15; index++)
     {
+	if(code == 1)
+	{
+	    rho = rhoarr[index - 1];
+	    mu = muarr[index -1];
+	}
+	else
+	{
+	    rho = rhoarr[index + 9];
+	    mu = muarr[index + 9];
+	}
 	getgeom(&len,&area,&dia, &deltaH,  index,nData, &eqLD, &n);
 	term1 += len/(area*deltat);
 	
@@ -92,31 +103,23 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	term3 += kin*(pow(1.0/area,2.0));
 	term3 += kout*(pow(1.0/area,2.0));
 
-	term4 += rhoold*GRAVITY*deltaH;
+	term4 += rho*GRAVITY*deltaH;
 
-	//printf("Buoyancy term for %s is %.4e\n",components[index],rhoold*GRAVITY*deltaH);
 	
     }
     term1 = term1/GC;
-    term2 = term2/(2.0*rho*GC);
-    term3 = term3/(2.0*rho*GC);
+    term2 = term2/(2.0*rhosys*GC);
+    term3 = term3/(2.0*rhosys*GC);
     term4 = term4/GC;
 
-    //printf("values %.4f %.4f %.4f %.4f\n",term1, term2, term3, term4);
-    
     
     *a = term1 + 2.0*(term2 + term3)*fabs(mdot);
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
 
-    //printf(" a and b = %.4f %.4f\n", *a, *b);
-    //printf("Buoyancy term in loop = %.4e\n",term4);
-
-
-    //printf("\n");
 }
 
 
-void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double rho, double mu, double rhoold)
+void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys)
 {
     double len, area, dia, deltaH;
     double term1 = 0.0;
@@ -135,8 +138,12 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     int index[6] = {0,1,2,3,4,15};
     int i;
 
+    double rho, mu;
+
     for(coreIndex =0; coreIndex<4; coreIndex++)
     {
+	mu = muarr[coreIndex];
+	
 	getgeom(&len,&area,&dia, &deltaH,  coreIndex,nData, &eqLD, &n);
 	
 	
@@ -144,7 +151,6 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	
 	F = frictionFactor(mdot, mu, dia, area,coreIndex);
 
-	//printf ("Friction %.4e \n",F);
 	term2 += (F *(len/dia))*pow(1.0/area,2.0);
 	
 		
@@ -167,27 +173,32 @@ void coreTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     
     for(i=0; i<6; i++)
     {
+	if(i < 4)
+	{
+	    rho = rhoarr[i];
+	}
+	else if(i == 4)
+	{
+	    rho = rhoarr[25];
+	}
+	else if(i == 5)
+	{
+	    rho = rhoarr[24];
+	}
+	
 	getgeom(&len,&area,&dia,&deltaH,index[i],nData, &eqLD, &n);
-	term4 += rhoold*GRAVITY*deltaH;
+	term4 += rho*GRAVITY*deltaH;
 
-	//printf("Buoyancy term for %s is %.4e\n",components[index[i]],rhoold*GRAVITY*deltaH);
     }
 
 
     term1 = term1/GC;
-    term2 = term2/(2.0*rho*GC);
-    term3 = term3/(2.0*rho*GC);
+    term2 = term2/(2.0*rhosys*GC);
+    term3 = term3/(2.0*rhosys*GC);
     term4 = term4/GC;
     
     *a = term1 + 2.0*(term2 + term3)*fabs(mdot);
     *b = term1*mold + (term2 + term3)*mdot*fabs(mdot) - term4;
 
-    //printf("Buoyancy term in core = %.4e\n",term4);
-
-    //printf("ac is %.4e and bc is %.4e\n",*a,*b);
-
-    //exit(1);
-
-    //printf("\n");
 }
     

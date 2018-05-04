@@ -9,5 +9,7 @@ void control();
 
 void geomData(struct nodeData*);
 
+void problemData();
+
 #endif
 

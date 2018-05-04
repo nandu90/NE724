@@ -89,6 +89,8 @@ double maxNewton;
 double iniDeltat;
 
 double targetMdot;
+
+double Tsat;
 //------------------------------------------------------------------------//
 
 

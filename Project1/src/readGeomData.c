@@ -76,7 +76,7 @@ void geomData(struct nodeData* nData)
 
 void problemData()
 {
-     power = 3411.0E6; //in watts
+     power = 3411.0E6 * 3.412141633; //in Btu/hr after conversion
      cHeight = 144.0 * 0.083333;    //in feet (why!!! :( )
      nRodLoc = 55777;
      nRodFuel = 50952;

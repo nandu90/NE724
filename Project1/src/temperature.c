@@ -9,8 +9,10 @@ Created: 2018-05-03
 #include "common.h"
 #include "memory.h"
 #include "rhs.h"
+#include "correlations.h"
+#include "solvers.h"
 
-void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat)
+void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot)
 {
     double m1 = *m1dot;
     double m2 = *m2dot;
@@ -23,11 +25,12 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     int i,j;
     double a,b,c;
     double vol;
-    double rho =1.0;   //Will have to do something about density
+    
     double c1, c2;
     double a1, a2;
     //------------------------------------------------------------------------//
 
+    
     
     //------------------------------------------------------------------------//
     //Assemble the matrix
@@ -47,7 +50,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	vol = nData[i].len * nData[i].Ax;
 	
 	a = -(mc/2.0)*(1.0 + fabs(mc)/mc);
-	b = vol*rho/deltat + fabs(mc);
+	b = vol*rho[i]/deltat + fabs(mc);
 	c = (mc/2.0)*(1.0 - fabs(mc)/mc);
 
 	if(i == 0)
@@ -77,7 +80,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	vol = nData[i+1].len * nData[i+1].Ax;
 
 	a = -(m1/2.0)*(1.0 + fabs(m1)/m1);
-	b = vol*rho/deltat + fabs(m1);
+	b = vol*rho[i]/deltat + fabs(m1);
 	c = (m1/2.0)*(1.0 - fabs(m1)/m1);
 
         if(i == 4)
@@ -101,13 +104,13 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     }
 
     //For Loop 2,3,4: Hot Leg to downcomer
-    for(i=14; i<24; i++)
+    for(i=14; i<24; i++)                             //DOUBT should i take m2bar or m2dot
     {
 	vol = nData[i-9].len * nData[i-9].Ax;
 
-	a = -(m2bar/2.0)*(1.0 + fabs(m2bar)/m2bar);
-	b = vol*rho/deltat + fabs(m2bar);
-	c = (m2bar/2.0)*(1.0 - fabs(m2bar)/m2bar);
+	a = -(m2/2.0)*(1.0 + fabs(m2)/m2);
+	b = vol*rho[i]/deltat + fabs(m2);
+	c = (m2/2.0)*(1.0 - fabs(m2)/m2);
 
         if(i == 14)
 	{
@@ -130,9 +133,10 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     }
 
     //Upper Plenum
-    vol = nData[4].len * nData[4].Ax;
+    vol = UPVol;
+    
     a = -(mc/2.0)*(1.0 + fabs(mc)/mc);
-    b = vol*rho/deltat + 0.5*(fabs(mc) + fabs(m1) + fabs(m2bar));
+    b = vol*rho[25]/deltat + 0.5*(fabs(mc) + fabs(m1) + fabs(m2bar));
     c1 = (m1/2.0)*(1.0 - fabs(m1)/m1);
     c2 = (m2bar/2.0)*(1.0 - fabs(m2bar)/m2bar);
     A[25][25] = b;
@@ -141,10 +145,11 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     A[25][14] = c2;
 
     //Lower Plenum
-    vol = nData[14].len * nData[14].Ax;
+    vol = LPVol;
+    
     a1 = -(m1/2.0)*(1.0 - fabs(m1)/m1);
     a2 = -(m2bar/2.0)*(1.0 - fabs(m2bar)/m2bar);
-    b = vol*rho/deltat + 0.5*(fabs(mc) + fabs(m1) + fabs(m2bar));
+    b = vol*rho[24]/deltat + 0.5*(fabs(mc) + fabs(m1) + fabs(m2bar));
     c = (mc/2.0)*(1.0 + fabs(mc)/mc);
     A[24][24] = b;
     A[24][0] = c;
@@ -170,8 +175,143 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //------------------------------------------------------------------------//
 
     //------------------------------------------------------------------------//
+    //RHS for Steam Generators -  Heat transfer term
+    double Re, Pr;
+    double ktemp, cptemp, cvtemp;
+    double dia;
+    double area;
+    double *B;
+    double *hcoeff;
+    double *UA;
+    double *qdot;
+    allocator1(&B, 26);
+    allocator1(&hcoeff, 26);
+    allocator1(&UA, 26);
+    allocator1(&qdot, 26);
+
+    //Loop 1 Steam Generators
+    for(i=5; i<12; i++)
+    {
+	ktemp = kfromT(T[i]);
+	cptemp = cpfromT(T[i]);
+	Pr = mu[i]*cptemp/ktemp;
+
+	dia = nData[i+1].De;
+	area = nData[i+1].Ax;
+	Re = fabs(dia*m1/(area*mu[i]));
+
+	//Dittus-Boelter
+	hcoeff[i] = 0.023*pow(Re,0.8)*pow(Pr,0.3)*ktemp/dia;
+	UA[i] = nSGTubes*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	qdot[i] = UA[i]*(Tsat - T[i]);
+    }
+
+    //Loop 2,3,4 Steam generators
+    for(i=15; i<22; i++)
+    {
+	ktemp = kfromT(T[i]);
+	cptemp = cpfromT(T[i]);
+	Pr = mu[i]*cptemp/ktemp;
+
+	dia = nData[i-9].De;
+	area = nData[i-9].Ax;
+	Re = fabs(dia*m2/(area*mu[i]));
+
+	//Dittus-Boelter
+	hcoeff[i] = 0.023*pow(Re,0.8)*pow(Pr,0.3)*ktemp/dia;
+	UA[i] = nSGTubes*PI*dia*nData[i-9].len/((1.0/hcoeff[i]) + eta);
+	qdot[i] = UA[i]*(Tsat - T[i]);                 //Doubt here
+    }
+    //------------------------------------------------------------------------//
+
+    
+    //------------------------------------------------------------------------//
+    //Call solver for heat conduction in the core here
+    double factor[4] = {0.586, 1.414, 1.414, 0.586};
+    for(i=0; i<4; i++)
+    {
+	qdot[i] = factor[i]*Qdot/4.0;
+	printf("Power for %d is %.4e\n",i,qdot[i]);
+    }
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //Assemble RHS now
+    for(i=0; i<26; i++)
+    {
+	if(i>=0 && i<=3) //core
+	{
+	    vol = nData[i].len*nData[i].Ax;
+	}
+	else if(i>=4 && i<=13)
+	{
+	    vol = nData[i+1].len*nData[i+1].Ax;
+	}
+	else if(i>=14 && i<=23)
+	{
+	    vol = nData[i-9].len*nData[i-9].Ax;
+	}
+	else if(i==24)
+	{
+	    vol = LPVol;
+	}
+	else
+	{
+	    vol = UPVol;
+	}
+
+	B[i] = qdot[i];// + vol*rho[i]*u[i]/deltat;
+
+	printf("RHS is %.4e and qdot is %.4e\n",B[i],qdot[i]);
+    }
+
+    
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //Solve for Internal energy value at the next time step
+    double *unext;
+    allocator1(&unext , 26);
+    solveSystem(A, B, unext, 26);
+    for(i=0; i<26; i++)
+    {
+	printf("Old: %.4e and New: %.4e\n",u[i], unext[i]);
+    }
+
+    for(i=0; i<26; i++)
+    {
+	u[i] = unext[i];
+    }
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //Compute the temperature from internal energy
+    for(i=0; i<26; i++)
+    {
+	printf("Old Temperature was %.2f ",T[i]);
+	T[i] = TfromU(u[i]);
+	printf("and New Temperature is %.2f\n",T[i]);
+    }
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //Compute the density and viscosity from the new temperature values
+    for(i=0; i<26; i++)
+    {
+	rho[i] = rhofromT(T[i]);
+	mu[i] = mufromT(T[i]);
+    }
+    //------------------------------------------------------------------------//
+
+    
+    //------------------------------------------------------------------------//
     //Deallocators
     deallocator2(&A, 26, 26);
+    deallocator1(&B, 26);
+    deallocator1(&hcoeff, 26);
+    deallocator1(&UA, 26);
+    deallocator1(&qdot, 26);
+    deallocator1(&unext, 26);
     //------------------------------------------------------------------------//
 
     

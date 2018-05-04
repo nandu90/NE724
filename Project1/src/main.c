@@ -59,7 +59,13 @@ int main(int argc, char **argv)
     callocator2(&components, nodes); 
     if(myrank == master)printf("Read the node data file\n\n");
     geomData(nData);
-    
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //Read problem data
+    problemData();
+    //------------------------------------------------------------------------//
+
 
     //------------------------------------------------------------------------//
     //Construct the Coefficient matrix for Mass-momentum equation
@@ -81,6 +87,11 @@ int main(int argc, char **argv)
     int iNewton;
 
     //------------------------------------------------------------------------//
+    //Loop indexes
+    int i;
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
     //Solution variables
     double m1dot = iniM1dot;
     double m2dot = (iniMcdot - iniM1dot)/(nloops - 1);
@@ -91,9 +102,8 @@ int main(int argc, char **argv)
     double mcold = mcdot;
     double deltaPcore = 0.0;
 
-    double mu = iniMu;
-    double rho = iniRho;
-    double rhoold = rho;
+    
+    double rhosys = iniRho;
 
     double RCP = 100.0*144.0;
     double volFlowRate=0.0;
@@ -101,9 +111,42 @@ int main(int argc, char **argv)
     double error = 100.0;
     double RCPtol = 1e-8;
     int iter = 0;
+
+    //Temperature Related
+    double *T;
+    allocator1(&T, 26);
+    for(i=0; i<26; i++)
+    {
+	T[i] = Tsat;
+    }
+
+    double *rho;
+    allocator1(&rho, 26);
+    for(i=0; i<26; i++)
+    {
+	rho[i] = iniRho;
+    }
+
+    double *mu;
+    allocator1(&mu, 26);
+    for(i=0; i<26; i++)
+    {
+	mu[i] = iniMu;
+    }
+
+    double *u;
+    allocator1(&u, 26);
+    for(i=0; i<26; i++)
+    {
+	u[i] = ufromT(T[i]);
+    }
+
+   
+    
+    
     //------------------------------------------------------------------------//
 
-    printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rho, nloops);
+    //printf("m1dot m2dot mcdot mu rho = %.4e %.4e %.4e %.4e %.4e %.4e\n",m1dot, m2dot, mcdot, mu, rhosys, nloops);
     
     while(fabs(error) > RCPtol)//(t <= finalTime)//(fabs(mcdot) > 1e-8)
     {
@@ -114,13 +157,13 @@ int main(int argc, char **argv)
 	printf("----------------------------Time Step = %.4e----------------------------\n",t);
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhoold);
-	    b1 += RCP/nloops;
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    b1 += RCP;
 	    //printf("a1 and b1 outside = %.4f %.4f\n", a1, b1);
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhoold);
-	    b2 += RCP/nloops;
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    b2 += RCP;
 	    //printf("a2 and b2 outside = %.4f %.4f\n", a2, b2);
-	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhoold);
+	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    //printf("ac and bc outside = %.4f %.4f\n", ac, bc);
 	    
 	    //Solution from Cramer's loop for next iteration
@@ -179,13 +222,22 @@ int main(int argc, char **argv)
     
     
     //------------------------------------------------------------------------//
-    solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat);
-
+    double eta = 0.0;
+    deltat = 1.0/3600.0;
+    double ramp = 0.05*power/60.0;
+    double Qdot = deltat * ramp;
+    solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot);
+    
     
     //------------------------------------------------------------------------//
     //Dellocators
     free(nData);
-    cdeallocator2(&components,nodes); 
+    cdeallocator2(&components,nodes);
+
+    deallocator1(&T, 26);
+    deallocator1(&rho, 26);
+    deallocator1(&mu, 26);
+    deallocator1(&u, 26);
     //------------------------------------------------------------------------//
 
    

@@ -90,6 +90,11 @@ void control()
 		    word = strtok(NULL,delim);
 		    targetMdot = atof(word);
 		}
+		if(strcmp(word,"Tsat") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    Tsat = atof(word);
+		}
 		word = strtok(NULL,delim);
 	    }
 	}
