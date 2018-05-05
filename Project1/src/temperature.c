@@ -12,7 +12,7 @@ Created: 2018-05-03
 #include "correlations.h"
 #include "solvers.h"
 
-void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot)
+void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot, int iter)
 {
     double m1 = *m1dot;
     double m2 = *m2dot;
@@ -147,30 +147,34 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //Lower Plenum
     vol = LPVol;
     
-    a1 = -(m1/2.0)*(1.0 - fabs(m1)/m1);
-    a2 = -(m2bar/2.0)*(1.0 - fabs(m2bar)/m2bar);
+    a1 = -(m1/2.0)*(1.0 + fabs(m1)/m1);
+    a2 = -(m2bar/2.0)*(1.0 + fabs(m2bar)/m2bar);
     b = vol*rho[24]/deltat + 0.5*(fabs(mc) + fabs(m1) + fabs(m2bar));
-    c = (mc/2.0)*(1.0 + fabs(mc)/mc);
+    c = (mc/2.0)*(1.0 - fabs(mc)/mc);
     A[24][24] = b;
     A[24][0] = c;
     A[24][13] = a1;
     A[24][23] = a2;
 
-    for(i=0; i<26; i++)
+    /*if(iter == 11)
     {
-	for(j=0; j<26; j++)
+	for(i=0; i<26; i++)
 	{
-	    if(fabs(A[i][j]) < 1e-10)
+	    printf("%d ",i);
+	    for(j=0; j<26; j++)
 	    {
-		printf("- ");
+		if(fabs(A[i][j]) < 1e-10)
+		{
+		    printf("* ");
+		}
+		else
+		{
+		    printf("%.1e ",A[i][j]);
+		}
 	    }
-	    else
-	    {
-		printf("%.1e ",A[i][j]);
-	    }
+	    printf("\n");
 	}
-	printf("\n");
-    }
+	}*/
     
     //------------------------------------------------------------------------//
 
@@ -231,7 +235,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     for(i=0; i<4; i++)
     {
 	qdot[i] = factor[i]*Qdot/4.0;
-	printf("Power for %d is %.4e\n",i,qdot[i]);
+	//printf("Power for %d is %.4e\n",i,qdot[i]);
     }
     //------------------------------------------------------------------------//
 
@@ -260,9 +264,12 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	    vol = UPVol;
 	}
 
-	B[i] = qdot[i];// + vol*rho[i]*u[i]/deltat;
+	B[i] = qdot[i] + vol*rho[i]*u[i]/deltat;
 
-	printf("RHS is %.4e and qdot is %.4e\n",B[i],qdot[i]);
+	/*if(iter == 11)
+	{
+	    printf("RHS is %.4e and qdot is %.4e\n",B[i],qdot[i]);
+	    }*/
     }
 
     
@@ -273,10 +280,10 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     double *unext;
     allocator1(&unext , 26);
     solveSystem(A, B, unext, 26);
-    for(i=0; i<26; i++)
+    /*for(i=0; i<26; i++)
     {
 	printf("Old: %.4e and New: %.4e\n",u[i], unext[i]);
-    }
+	}*/
 
     for(i=0; i<26; i++)
     {
@@ -288,9 +295,9 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //Compute the temperature from internal energy
     for(i=0; i<26; i++)
     {
-	printf("Old Temperature was %.2f ",T[i]);
+	//printf("Old Temperature was %.2f ",T[i]);
 	T[i] = TfromU(u[i]);
-	printf("and New Temperature is %.2f\n",T[i]);
+	//printf("and New Temperature is %.2f\n",T[i]);
     }
     //------------------------------------------------------------------------//
 

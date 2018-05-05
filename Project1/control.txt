@@ -11,7 +11,7 @@ Loop1_Flow_Rate 0.01
 
 //Time Control
 Totaltime 100.0
-Max_Newton_Iterations 10
+Max_Newton_Iterations 100
 Time_Step_Size 0.001       //in secs. COnversion is done inside
 
 //Target Values

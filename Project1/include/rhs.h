@@ -15,5 +15,5 @@ void loopTerms(double *, double *, double, struct nodeData *, double, double, do
 
 void coreTerms(double *, double *, double, struct nodeData *, double, double, double *, double *, double);
 
-void solveTemp(double *, double *, double *, struct nodeData *, double, double *, double * , double *, double *, double, double);
+void solveTemp(double *, double *, double *, struct nodeData *, double, double *, double * , double *, double *, double, double, int);
 #endif

@@ -124,14 +124,14 @@ int main(int argc, char **argv)
     allocator1(&rho, 26);
     for(i=0; i<26; i++)
     {
-	rho[i] = iniRho;
+	rho[i] = rhofromT(Tsat);;
     }
 
     double *mu;
     allocator1(&mu, 26);
     for(i=0; i<26; i++)
     {
-	mu[i] = iniMu;
+	mu[i] = mufromT(Tsat);;
     }
 
     double *u;
@@ -142,7 +142,8 @@ int main(int argc, char **argv)
     }
 
    
-    
+    double mcCheck;
+    double change;
     
     //------------------------------------------------------------------------//
 
@@ -151,8 +152,7 @@ int main(int argc, char **argv)
     while(fabs(error) > RCPtol)//(t <= finalTime)//(fabs(mcdot) > 1e-8)
     {
 	iter++;
-	double mcCheck = mcold;
-	double change;
+	mcCheck = mcold;
 	//Newton's iteration loop
 	printf("----------------------------Time Step = %.4e----------------------------\n",t);
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
@@ -222,11 +222,127 @@ int main(int argc, char **argv)
     
     
     //------------------------------------------------------------------------//
+    
+    //------------------------------------------------------------------------//
+    printf("required inlet temp is %.4f\n",inletTemp);
+    printf("Entering Stage 2\n");
     double eta = 0.0;
     deltat = 1.0/3600.0;
-    double ramp = 0.05*power/60.0;
-    double Qdot = deltat * ramp;
-    solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot);
+    double ramp = 0.01*power;
+    double totalTime = 2.0*60.0;
+    t = 0.0;
+    double Qdot;
+    iter = 0;
+    double massRateError = 100.0;
+    double inTempError = 100.0;
+    
+    while(fabs(massRateError) > 1e-8)// || fabs(inTempError) > 1e-8)
+    {
+	iter++;
+	Qdot = min(power,(t+deltat) * ramp);
+	printf("Power is %.4f MW\n",Qdot/(1.0E6*3.412141633));
+	
+	//------------------------------------------------------------------------//
+	//Solve the mass momentum equations
+	mcCheck = mcold;
+	for(iNewton=0; iNewton<maxNewton; iNewton++)
+	{
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    b1 += RCP;
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    b2 += RCP;
+	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
+	    
+	    //Solution from Cramer's loop for next iteration
+	    m1dot = (b1*a2 + (nloops-1.0)*b1*ac - (nloops-1.0)*ac*b2 + a2*bc)/(a1*a2 + (nloops-1.0)*a1*ac + a2*ac);
+	    deltaPcore = b1 - a1*m1dot;
+	    m2dot = (b2 - deltaPcore)/a2;
+	    mcdot = m1dot + (nloops-1.0)*m2dot;
+
+	    
+	    //exit(1);
+	    change = (mcCheck - mcdot)/mcCheck;
+	    /*printf("Newton Iteration = %d\n", iNewton+1);
+	    printf("Core Mass Flow rate = %.4e\n", mcdot);
+	    printf("Relative change in mass core flow rate = %.4e\n", change);
+	    printf("Pressure drop across the core = %.4e\n",deltaPcore);*/
+	    mcCheck = mcdot;
+
+	    if(fabs(change) < 1e-8)
+	    {
+		printf("Newton's Iteration converged in %d iterations\n",iNewton+1);
+		break;
+	    }
+	    
+	}
+	
+	volFlowRate = mcdot/nData[0].Ax;
+	printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",volFlowRate);
+
+	//------------------------------------------------------------------------//
+	//Solve the heat equation
+	//Adjust the eta value after the core has reached full power
+	if(fabs(massRateError) < 1e-8)
+	{
+	    inTempError = inletTemp - T[0];
+	    printf("Node 0 temp is %.4f, required is %.4f and error is %.4f and eta value is %.4e\n",T[0], inletTemp, inTempError,eta);
+	    if(fabs(inTempError) > 1e-8)
+	    {
+		eta = 0.000000;
+		//eta = -0.001 * fabs(inTempError) *  inTempError/fabs(inTempError);
+	    }
+	}
+	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter);
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Adjust the RCP value once the core reaches full power
+	if(fabs(power - Qdot) <1e-8)// && fabs(massRateError) > 1e-8)
+	{
+	    volFlowRate = mcdot/nData[0].Ax;
+	    massRateError = targetMdot - volFlowRate;
+
+	    if(fabs(massRateError) > 1e-8)
+	    {
+		RCP += 0.001*massRateError + 0.001*(volFlowRate - volFlowRateOld)*deltat;
+		printf("RCP value is %.4e\n",RCP/144.0);
+		printf("Mass flow rate error is %.4e and Inlet Temperature Error is %.4e\n",massRateError, inTempError);
+	    }
+	    else
+	    {
+		printf("Steady State Acheived in %d time steps at time %.4f secs\n",iter,t);
+		printf("Mass flow rate of Loop1 %.4e lbm/hr \n",m1dot);
+		printf("Mass flow rate of Loop2 %.4e lbm/hr \n",m2dot);
+		printf("Mass flow rate of Core %.4e lbm/hr \n",mcdot);
+		printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot/nData[0].Ax);
+		printf("Rated DeltaP of the pump = %.4f psi\n",RCP/144.0);
+		printf("Mass flow rate error is %.4e and Inlet Temperature Error is %.4e\n",massRateError, inTempError);
+	    }
+	}
+	//------------------------------------------------------------------------//
+
+	
+	if(fabs(massRateError) < 1e-8)// && fabs(inTempError) < 1e-8)
+	{
+	    for(i=0 ;i <26; i++)
+	    {
+		printf("Temperature in node %d is %.4f\n",i,T[i]);
+	    }
+	}
+
+	
+	mcold = mcdot;
+	m1old = m1dot;
+	m2old = m2dot;
+	t += deltat;
+	volFlowRateOld = volFlowRate;
+
+	printf("\n\n");
+    }
+    
+    
+    
+    
     
     
     //------------------------------------------------------------------------//
