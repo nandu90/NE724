@@ -352,7 +352,7 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------//
     //File operations
     FILE *Qout;
-    Qout = fopen("power.txt","w");
+    Qout = fopen("data.txt","w");
     if(Qout == NULL)
     {
 	printf("Error opening power.txt\n");
@@ -396,7 +396,6 @@ int main(int argc, char **argv)
 	    Qdot += 0.87*pow(toperate + tsincetrip + 2.0E7, -0.2);
 	    Qdot += -0.87*pow(tsincetrip + 2.0E7, -0.2);
 	    Qdot = Qdot*0.1*power;
-	    fprintf(Qout,"%.4e %.4e\n",t*3600.0,Qdot/(1.0E6*3.412141633));
 	}
 	//------------------------------------------------------------------------//
 
@@ -456,7 +455,17 @@ int main(int argc, char **argv)
 	    printf("Please increment beta %.4f\n",beta);
 	    exit(1);
 	}
+	//------------------------------------------------------------------------//
 
+	//------------------------------------------------------------------------//
+	//Print the output
+	fprintf(Qout,"%.4e %.4e ",t*3600.0,Qdot/(1.0E6*3.412141633));
+	fprintf(Qout,"%.4e %.4e %.4e %.4e ",Tclad[0], Tclad[1], Tclad[2], Tclad[3]);
+	fprintf(Qout,"%.4e %.4e ",T[0], T[3]);
+	fprintf(Qout,"%.4e %.4e %.4e",mcdot, m1dot, m2dot);
+	fprintf(Qout,"\n");
+	//------------------------------------------------------------------------//
+	
 	mcold = mcdot;
 	m1old = m1dot;
 	m2old = m2dot;
