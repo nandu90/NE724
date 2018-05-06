@@ -65,6 +65,7 @@ double TfromU(double u)
 
     value = a*u*u*u + b*u*u + c*u + d;
 
+    if(plugme == 1)value = u;
     return value;
 }
 
@@ -126,6 +127,7 @@ double cpfromT(double T)
 
     value = a*T*T*T + b*T*T + c*T + d;
 
+    value = 1.5;
     return value;
 }
 

@@ -80,6 +80,8 @@ int main(int argc, char **argv)
     
     //------------------------------------------------------------------------//
 
+    plugme = 0;
+
     //------------------------------------------------------------------------//
     //Time loop will come here
     double t=0.0;
@@ -159,10 +161,10 @@ int main(int argc, char **argv)
 	printf("----------------------------Time Step = %.4e----------------------------\n",t);
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 0, 0);
 	    b1 += RCP;
 	    //printf("a1 and b1 outside = %.4f %.4f\n", a1, b1);
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 0, 0);
 	    b2 += RCP;
 	    //printf("a2 and b2 outside = %.4f %.4f\n", a2, b2);
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
@@ -248,9 +250,9 @@ int main(int argc, char **argv)
 	mcCheck = mcold;
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 0, 0);
 	    b1 += RCP;
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 0, 0);
 	    b2 += RCP;
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    
@@ -293,7 +295,7 @@ int main(int argc, char **argv)
 		//eta = -0.001 * fabs(inTempError) *  inTempError/fabs(inTempError);
 	    }
 	    }*/
-	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter);
+	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter, 0, 0);
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//
@@ -350,6 +352,7 @@ int main(int argc, char **argv)
     
     
     //------------------------------------------------------------------------//
+    plugme = 0;
     //File operations
     FILE *Qout;
     Qout = fopen("data.txt","w");
@@ -361,27 +364,30 @@ int main(int argc, char **argv)
     
     //Time realted variables   
     deltat = 0.01/3600.0;
-    double totalTime = 5000.0/3600.0;
+    double totalTime = 0.2/3600.0;
     t = 0.0;
     double trip = 2.0/3600.0;
-    double toperate = 365.0*24.0*60.0*60.0;   //Operating time in secs
-    double tsincetrip;
+    //double toperate = 365.0*24.0*60.0*60.0;   //Operating time in secs
+    //double tsincetrip;
     iter = 0;
 
     //Pump trip model
-    double beta = 18.35;
-    double deltaP0 = RCP;
+    //double beta = 18.35;
+    //double deltaP0 = RCP;
 
     double Tsatsys = 652.744;
-    double maxclad;
+    //double maxclad;
+
+    int nblock = 500;
+
+    double origm1 = m1dot;
+    double origm2 = m2dot;
+    double origmc = mcdot;
     
     while(t<totalTime)
     {
-	//------------------------------------------------------------------------//
-	//Pressure increase model across the pumps
-	RCP = deltaP0/(1.0 + t*3600.0/beta); 
-	//------------------------------------------------------------------------//
-
+	iter++;
+	printf("Iteration number %d\n",iter);
 	//------------------------------------------------------------------------//
 	//Determine power value
 	if(t<=trip)
@@ -390,12 +396,13 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-	    tsincetrip = (t - trip)*3600.0;  //Convert to secs
+	    Qdot = power;
+	    /*tsincetrip = (t - trip)*3600.0;  //Convert to secs
 	    Qdot = pow(tsincetrip + 10.0,-0.2);
 	    Qdot += -pow(toperate + tsincetrip + 10.0,-0.2);
 	    Qdot += 0.87*pow(toperate + tsincetrip + 2.0E7, -0.2);
 	    Qdot += -0.87*pow(tsincetrip + 2.0E7, -0.2);
-	    Qdot = Qdot*0.1*power;
+	    Qdot = Qdot*0.1*power;*/
 	}
 	//------------------------------------------------------------------------//
 
@@ -404,9 +411,9 @@ int main(int argc, char **argv)
 	mcCheck = mcold;
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 1, nblock);
 	    b1 += RCP;
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 1, nblock);
 	    b2 += RCP;
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    
@@ -430,7 +437,7 @@ int main(int argc, char **argv)
 
 	//------------------------------------------------------------------------//
 	//Solve the temperature equation
-	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter);
+	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter, 1, nblock);
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//
@@ -442,19 +449,24 @@ int main(int argc, char **argv)
 	    printf("Node %d CladTemp is %.4f and CoolantTemp is %.4f SatTemp is %.4f\n",i,Tclad[i],T[i],Tsatsys);
 	}
 	printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot/nData[0].Ax);
-	printf("Rated DeltaP of the pump = %.4f psi\n",RCP/144.0);	
+	printf("Rated DeltaP of the pump = %.4f psi\n",RCP/144.0);
+
+	printf("Loop 1: Orig = %.4e and new = %.4e\n", origm1, m1dot);
+	printf("Loop 2: Orig = %.4e and new = %.4e\n", origm2, m2dot);
+	printf("Core: Orig = %.4e and new = %.4e\n", origmc, mcdot);
+	printf("The flow rate is reduced to %.2e%%\n", (origm1 - m1dot)*100.0/origm1);
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//
 	//Check if max temp exceeds Tsat
-	maxclad = max(Tclad[0], max(Tclad[1], max(Tclad[2],Tclad[3])));
+	/*maxclad = max(Tclad[0], max(Tclad[1], max(Tclad[2],Tclad[3])));
 
 	if(maxclad > Tsatsys || T[3] > Tsatsys)
 	{
 	    printf("Max Clad %.4f or Core exit Temp %.4f exceeds Saturation Temp %.4f\n",maxclad,T[3],Tsatsys);
 	    printf("Please increment beta %.4f\n",beta);
 	    exit(1);
-	}
+	    }*/
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//

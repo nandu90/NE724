@@ -39,7 +39,7 @@ void getgeom(double *len, double *area, double *dia, double *deltaH, int index, 
     }
 }
 
-void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys, int code)
+void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys, int code, int plug, int nblock)
 {
     //------------------------------------------------------------------------//
     double len, area, dia, deltaH;
@@ -73,6 +73,19 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	    mu = muarr[index + 9];
 	}
 	getgeom(&len,&area,&dia, &deltaH,  index,nData, &eqLD, &n);
+
+	
+	//block tube - calculate reduced overall area
+	if(index >= 6 && index <= 12 && plug == 1 && code == 1)
+	{
+	    //printf("Orig area: %.4e ", area);
+	    area = area/nSGTubes;
+	    area = area*((double)(nSGTubes - nblock));
+	    //printf("New area: %.4e\n",area);
+	    //exit(1);
+	}
+	//
+	
 	term1 += len/(area*deltat);
 	
 	//Get the friction factor

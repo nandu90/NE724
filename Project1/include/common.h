@@ -67,6 +67,7 @@ struct nodeData
 //Inputs from control file
 double nloops;
 
+int plugme;
 //------------------------------------------------------------------------//
 
 

@@ -54,7 +54,7 @@ void getCladTemp(double mcdot, double *T, double *Tclad, double *mu, struct node
     }
 }
 
-void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot, int iter)
+void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot, int iter, int plug, int nblock)
 {
     double m1 = *m1dot;
     double m2 = *m2dot;
@@ -70,6 +70,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     
     double c1, c2;
     double a1, a2;
+    double area;
     //------------------------------------------------------------------------//
 
     
@@ -119,7 +120,15 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //For Loop 1: Hot Leg to downcomer
     for(i=4; i<14; i++)
     {
-	vol = nData[i+1].len * nData[i+1].Ax;
+	area = nData[i+1].Ax;
+
+	if(i>=5 && i<=11 && plug == 1)
+	{
+	    area = area/nSGTubes;
+	    area = area*((double)(nSGTubes - nblock));
+	}
+	
+	vol = nData[i+1].len * area;
 
 	a = -(m1/2.0)*(1.0 + fabs(m1)/m1);
 	b = vol*rho[i]/deltat + fabs(m1);
@@ -198,7 +207,8 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     A[24][13] = a1;
     A[24][23] = a2;
 
-    /*if(iter == 11)
+    /*int j;
+    if(iter == 4 && plug == 1)
     {
 	for(i=0; i<26; i++)
 	{
@@ -225,7 +235,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     double Re, Pr;
     double ktemp, cptemp;
     double dia;
-    double area;
+    
     double *B;
     double *hcoeff;
     double *UA;
@@ -244,20 +254,40 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 
 	dia = nData[i+1].De;
 	area = nData[i+1].Ax;
+	if(plug == 1)
+	{
+	    area = area/nSGTubes;
+	    area = area*((double)(nSGTubes - nblock));
+	    
+	}
 	Re = fabs(dia*m1/(area*mu[i]));
 
 	//Dittus-Boelter
 	hcoeff[i] = 0.023*pow(Re,0.8)*pow(Pr,0.3)*ktemp/dia;
-	UA[i] = nSGTubes*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	
+	if(plug == 1)
+	{
+	    UA[i] = (nSGTubes - nblock)*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	}
+	else
+	{
+	    UA[i] = nSGTubes*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	}
 	qdot[i] = UA[i]*(Tsat - T[i]);
+
+	/*if(iter == 5 && plug == 1)
+	{
+	    printf("%.4e %.4e %.4e %.4e\n",Pr,mu[i],cptemp, T[i]);
+	    }*/
     }
+    //if(iter == 5 && plug == 1)exit(1);
 
     //Loop 2,3,4 Steam generators
     for(i=15; i<22; i++)
     {
 	ktemp = kfromT(T[i]);
 	cptemp = cpfromT(T[i]);
-	Pr = mu[i]*cptemp/ktemp;
+	Pr = fabs(mu[i]*cptemp/ktemp);
 
 	dia = nData[i-9].De;
 	area = nData[i-9].Ax;
@@ -310,12 +340,13 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 
 	B[i] = qdot[i] + vol*rho[i]*u[i]/deltat;
 
-	/*if(iter == 11)
+	if(iter == 5 && plug == 1)
 	{
-	    printf("RHS is %.4e and qdot is %.4e\n",B[i],qdot[i]);
-	    }*/
+	    printf("%d RHS is %.4e and qdot is %.4e\n",i, B[i],qdot[i]);
+	}
+	
     }
-
+    //if(iter == 5 && plug == 1)exit(1);
     
     //------------------------------------------------------------------------//
 
@@ -339,9 +370,9 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //Compute the temperature from internal energy
     for(i=0; i<26; i++)
     {
-	//printf("Old Temperature was %.2f ",T[i]);
+	if(plug == 1)printf("Old Temperature was %.2f ",T[i]);
 	T[i] = TfromU(u[i]);
-	//printf("and New Temperature is %.2f\n",T[i]);
+	if(plug == 1)printf("and New Temperature is %.2f\n",T[i]);
     }
     //------------------------------------------------------------------------//
 
