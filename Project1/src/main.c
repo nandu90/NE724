@@ -352,7 +352,7 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------//
     //File operations
     FILE *Qout;
-    Qout = fopen("power.txt","w");
+    Qout = fopen("data.txt","w");
     if(Qout == NULL)
     {
 	printf("Error opening power.txt\n");
