@@ -87,6 +87,10 @@ double iniM1dot;
 double finalTime;
 double maxNewton;
 double iniDeltat;
+
+double targetMdot;
+
+double Tsat;
 //------------------------------------------------------------------------//
 
 

@@ -43,7 +43,7 @@ void control()
 		if(strcmp(word,"Number_of_loops") == 0)
 		{
 		    word = strtok(NULL,delim);
-		    nloops = atoi(word);
+		    nloops = atof(word);
 		}
 		if(strcmp(word,"System_pressure") == 0)
 		{
@@ -84,6 +84,16 @@ void control()
 		{
 		    word = strtok(NULL,delim);
 		    iniDeltat = atof(word);
+		}
+		if(strcmp(word,"Target_Mass_Flow_Rate") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    targetMdot = atof(word);
+		}
+		if(strcmp(word,"Tsat") == 0)
+		{
+		    word = strtok(NULL,delim);
+		    Tsat = atof(word);
 		}
 		word = strtok(NULL,delim);
 	    }
