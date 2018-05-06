@@ -222,7 +222,6 @@ int main(int argc, char **argv)
 	volFlowRateOld = volFlowRate;
     }
     
-    
     //------------------------------------------------------------------------//
     
     //------------------------------------------------------------------------//
@@ -346,7 +345,8 @@ int main(int argc, char **argv)
 
 	printf("\n\n");
     }
-    
+
+ 
     
     
     //------------------------------------------------------------------------//
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
     
     //Time realted variables   
     deltat = 0.01/3600.0;
-    double totalTime = 5000.0/3600.0;
+    double totalTime = 10.0/3600.0;
     t = 0.0;
     double trip = 2.0/3600.0;
     double toperate = 365.0*24.0*60.0*60.0;   //Operating time in secs
