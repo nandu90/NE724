@@ -39,8 +39,22 @@ void getgeom(double *len, double *area, double *dia, double *deltaH, int index, 
     }
 }
 
-void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys, int code)
+void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, double mdot, double mold, double *rhoarr, double *muarr, double rhosys, int code, int code2)
 {
+    //------------------------------------------------------------------------//
+    //Accounting for prevention of backflow
+    double Kplus = 0.000001;
+    double Kminus = 1e16;
+    double K;
+    if(code == 1 && code2 == 1)
+    {
+	Kplus = 1e16;
+	Kminus = 1e16;
+    }
+    
+    //------------------------------------------------------------------------//
+
+    
     //------------------------------------------------------------------------//
     double len, area, dia, deltaH;
     double term1 = 0.0;
@@ -79,6 +93,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	F = frictionFactor(mdot, mu, dia, area,index);
 	term2 += (F *(eqLD))*pow(1.0/area,2.0);
 	//term2 += (F *len/dia)*pow(1.0/area,2.0);
+
+	K=0.0;
 	
 	if(index == 5)
 	{
@@ -94,6 +110,10 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	{
 	    kin = CLInLossCoeff;
 	    kout = CLOutLossCoeff;
+	    if(code2 == 1)
+	    {
+		K = 0.5*(Kplus + Kminus) + (0.5*fabs(mdot)/mdot)*(Kplus - Kminus);
+	    }
 	}
 	else
 	{
@@ -102,7 +122,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
 	}
 	term3 += kin*(pow(1.0/area,2.0));
 	term3 += kout*(pow(1.0/area,2.0));
-
+	term3 += K*(pow(1.0/area,2.0));
+	
 	term4 += rho*GRAVITY*deltaH;
 
 	

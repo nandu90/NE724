@@ -159,10 +159,10 @@ int main(int argc, char **argv)
 	printf("----------------------------Time Step = %.4e----------------------------\n",t);
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 0);
 	    b1 += RCP;
 	    //printf("a1 and b1 outside = %.4f %.4f\n", a1, b1);
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 0);
 	    b2 += RCP;
 	    //printf("a2 and b2 outside = %.4f %.4f\n", a2, b2);
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
@@ -248,9 +248,9 @@ int main(int argc, char **argv)
 	mcCheck = mcold;
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 0);
 	    b1 += RCP;
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 0);
 	    b2 += RCP;
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    
@@ -370,20 +370,19 @@ int main(int argc, char **argv)
 
     //Pump trip model
     double beta = 18.35;
-    double deltaP0 = RCP;
+    //double deltaP0 = RCP;
 
     double Tsatsys = 652.744;
     double maxclad;
 
     double RCP1 = RCP;
     double RCP2 = RCP;
+
+    RCP1 = 0.0;
+
     
     while(t<totalTime)
     {
-	//------------------------------------------------------------------------//
-	//Pressure increase model across the pumps
-	RCP1 = deltaP0/(1.0 + t*3600.0/beta); 
-	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//
 	//Determine power value
@@ -407,9 +406,9 @@ int main(int argc, char **argv)
 	mcCheck = mcold;
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
-	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1, 1);
 	    b1 += RCP1;
-	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2, 1);
 	    b2 += RCP2;
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    
@@ -421,6 +420,10 @@ int main(int argc, char **argv)
 
 	    change = (mcCheck - mcdot)/mcCheck;
 	    mcCheck = mcdot;
+
+	    /*printf("Checking\n");
+	    printf("%.4e %.4e %.4e %.4e\n", a1, a2, b1, b2);
+	    printf("%.4e %.4e %.4e %.4e\n", m1dot, m2dot, mcdot, deltaPcore);*/
 
 	    if(fabs(change) < 1e-8)
 	    {
@@ -450,14 +453,14 @@ int main(int argc, char **argv)
 
 	//------------------------------------------------------------------------//
 	//Check if max temp exceeds Tsat
-	maxclad = max(Tclad[0], max(Tclad[1], max(Tclad[2],Tclad[3])));
+	/*maxclad = max(Tclad[0], max(Tclad[1], max(Tclad[2],Tclad[3])));
 
 	if(maxclad > Tsatsys || T[3] > Tsatsys)
 	{
 	    printf("Max Clad %.4f or Core exit Temp %.4f exceeds Saturation Temp %.4f\n",maxclad,T[3],Tsatsys);
 	    printf("Please increment beta %.4f\n",beta);
 	    exit(1);
-	}
+	    }*/
 
 	//------------------------------------------------------------------------//
 	//Print the output
