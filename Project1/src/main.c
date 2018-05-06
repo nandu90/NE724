@@ -374,12 +374,15 @@ int main(int argc, char **argv)
 
     double Tsatsys = 652.744;
     double maxclad;
+
+    double RCP1 = RCP;
+    double RCP2 = RCP;
     
     while(t<totalTime)
     {
 	//------------------------------------------------------------------------//
 	//Pressure increase model across the pumps
-	RCP = deltaP0/(1.0 + t*3600.0/beta); 
+	RCP1 = deltaP0/(1.0 + t*3600.0/beta); 
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//
@@ -396,7 +399,6 @@ int main(int argc, char **argv)
 	    Qdot += 0.87*pow(toperate + tsincetrip + 2.0E7, -0.2);
 	    Qdot += -0.87*pow(tsincetrip + 2.0E7, -0.2);
 	    Qdot = Qdot*0.1*power;
-	    fprintf(Qout,"%.4e %.4e\n",t*3600.0,Qdot/(1.0E6*3.412141633));
 	}
 	//------------------------------------------------------------------------//
 
@@ -406,9 +408,9 @@ int main(int argc, char **argv)
 	for(iNewton=0; iNewton<maxNewton; iNewton++)
 	{
 	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
-	    b1 += RCP;
+	    b1 += RCP1;
 	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
-	    b2 += RCP;
+	    b2 += RCP2;
 	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
 	    
 	    //Solution from Cramer's loop for next iteration
@@ -457,6 +459,16 @@ int main(int argc, char **argv)
 	    exit(1);
 	}
 
+	//------------------------------------------------------------------------//
+	//Print the output
+	fprintf(Qout,"%.4e %.4e ",t*3600.0,Qdot/(1.0E6*3.412141633));
+	fprintf(Qout,"%.4e %.4e %.4e %.4e ",Tclad[0], Tclad[1], Tclad[2], Tclad[3]);
+	fprintf(Qout,"%.4e %.4e ",T[0], T[3]);
+	fprintf(Qout,"%.4e %.4e %.4e",mcdot, m1dot, m2dot);
+	fprintf(Qout,"\n");
+	//------------------------------------------------------------------------//
+
+	
 	mcold = mcdot;
 	m1old = m1dot;
 	m2old = m2dot;
