@@ -349,7 +349,126 @@ int main(int argc, char **argv)
     
     
     
+    //------------------------------------------------------------------------//
+    //File operations
+    FILE *Qout;
+    Qout = fopen("power.txt","w");
+    if(Qout == NULL)
+    {
+	printf("Error opening power.txt\n");
+	exit(1);
+    }
     
+    //Time realted variables   
+    deltat = 0.01/3600.0;
+    double totalTime = 2.0/3600.0;
+    t = 0.0;
+    double trip = 2.0/3600.0;
+    double toperate = 365.0*24.0*60.0*60.0;   //Operating time in secs
+    double tsincetrip;
+    iter = 0;
+
+    //Pump trip model
+    double beta = 18.35;
+    double deltaP0 = RCP;
+
+    double Tsatsys = 652.744;
+    double maxclad;
+    
+    while(t<totalTime)
+    {
+	//------------------------------------------------------------------------//
+	//Pressure increase model across the pumps
+	RCP = deltaP0/(1.0 + t*3600.0/beta); 
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Determine power value
+	if(t<=trip)
+	{
+	    Qdot = power;
+	}
+	else
+	{
+	    tsincetrip = (t - trip)*3600.0;  //Convert to secs
+	    Qdot = pow(tsincetrip + 10.0,-0.2);
+	    Qdot += -pow(toperate + tsincetrip + 10.0,-0.2);
+	    Qdot += 0.87*pow(toperate + tsincetrip + 2.0E7, -0.2);
+	    Qdot += -0.87*pow(tsincetrip + 2.0E7, -0.2);
+	    Qdot = Qdot*0.1*power;
+	    fprintf(Qout,"%.4e %.4e\n",t*3600.0,Qdot/(1.0E6*3.412141633));
+	}
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Solve the mass momentum equations
+	mcCheck = mcold;
+	for(iNewton=0; iNewton<maxNewton; iNewton++)
+	{
+	    loopTerms(&a1, &b1, deltat, nData, m1dot, m1old, rho, mu, rhosys, 1);
+	    b1 += RCP;
+	    loopTerms(&a2, &b2, deltat, nData, m2dot, m2old, rho, mu, rhosys, 2);
+	    b2 += RCP;
+	    coreTerms(&ac, &bc, deltat, nData, mcdot, mcold, rho, mu, rhosys);
+	    
+	    //Solution from Cramer's loop for next iteration
+	    m1dot = (b1*a2 + (nloops-1.0)*b1*ac - (nloops-1.0)*ac*b2 + a2*bc)/(a1*a2 + (nloops-1.0)*a1*ac + a2*ac);
+	    deltaPcore = b1 - a1*m1dot;
+	    m2dot = (b2 - deltaPcore)/a2;
+	    mcdot = m1dot + (nloops-1.0)*m2dot;
+
+	    change = (mcCheck - mcdot)/mcCheck;
+	    mcCheck = mcdot;
+
+	    if(fabs(change) < 1e-8)
+	    {
+		printf("Newton's Iteration converged in %d iterations\n",iNewton+1);
+		break;
+	    }
+	    
+	}
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Solve the temperature equation
+	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter);
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Get the corresponding temperature of cladding
+	getCladTemp(mcdot, T, Tclad, mu, nData, Qdot);
+	printf("Cladding and Coolant Temperatures at time %.4f secs\n",t*3600.0);
+	for(i=0; i<4; i++)
+	{
+	    printf("Node %d CladTemp is %.4f and CoolantTemp is %.4f SatTemp is %.4f\n",i,Tclad[i],T[i],Tsatsys);
+	}
+	printf("Volumetric flow rate of Core %.4e lbm/hr-ft^2 \n",mcdot/nData[0].Ax);
+	printf("Rated DeltaP of the pump = %.4f psi\n",RCP/144.0);	
+	//------------------------------------------------------------------------//
+
+	//------------------------------------------------------------------------//
+	//Check if max temp exceeds Tsat
+	maxclad = max(Tclad[0], max(Tclad[1], max(Tclad[2],Tclad[3])));
+
+	if(maxclad > Tsatsys || T[3] > Tsatsys)
+	{
+	    printf("Max Clad %.4f or Core exit Temp %.4f exceeds Saturation Temp %.4f\n",maxclad,T[3],Tsatsys);
+	    printf("Please increment beta %.4f\n",beta);
+	    exit(1);
+	}
+
+	mcold = mcdot;
+	m1old = m1dot;
+	m2old = m2dot;
+	t += deltat;
+	volFlowRateOld = volFlowRate;
+
+	printf("\n\n");
+    }
+
+    fclose(Qout);
+    //------------------------------------------------------------------------//
+
     
     
     //------------------------------------------------------------------------//
