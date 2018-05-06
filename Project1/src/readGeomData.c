@@ -83,8 +83,8 @@ void problemData()
      dRod = 0.374 * 0.083333;
      dPellet = 0.3225 * 0.083333;
      cladThic = 0.0225 * 0.083333;
-     gapConduct = 0.278;
-     cladConduct = 0.003;
+     gapConduct = 1000.0;
+     cladConduct = 9.6;
      rodPitch = 0.496 * 0.083333;
      nSpacerGrid = 8;
      gridLossCoeff = 0.5;

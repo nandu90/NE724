@@ -17,5 +17,5 @@ void coreTerms(double *, double *, double, struct nodeData *, double, double, do
 
 void solveTemp(double *, double *, double *, struct nodeData *, double, double *, double * , double *, double *, double, double, int);
 
-void conduction(double *, double);
+void getCladTemp(double , double *, double *, double *, struct nodeData *, double );
 #endif

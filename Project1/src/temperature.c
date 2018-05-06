@@ -12,6 +12,48 @@ Created: 2018-05-03
 #include "correlations.h"
 #include "solvers.h"
 
+void getCladTemp(double mcdot, double *T, double *Tclad, double *mu, struct nodeData *nData, double Qdot)
+{
+    //------------------------------------------------------------------------//
+    //Loop indexes and temporary variables
+    int i;
+    double ktemp, cptemp;
+    double Pr, Re;
+    double h;
+    double dia, area;
+    double qdot;
+    double harea;
+    //------------------------------------------------------------------------//
+    double factor[4] = {0.586, 1.414, 1.414, 0.586};
+
+    //------------------------------------------------------------------------//
+    //Loop in the core nodes
+    for(i=0; i<4; i++)
+    {
+	ktemp = kfromT(T[i]);
+	cptemp = cpfromT(T[i]);
+
+	Pr = mu[i]*cptemp/ktemp;
+
+	dia = nData[i].De;
+	area = nData[i].Ax;
+	Re = fabs(dia*mcdot/(area*mu[i]));
+
+	//Dittus-Boelter
+	h = 0.023*pow(Re,0.8)*pow(Pr,0.4)*ktemp/dia;
+
+	//Total heat transfer in this node
+	qdot = factor[i]*Qdot/4.0;
+
+	//Total heat transfer area of the node
+	harea = PI*dRod*nData[i].len * nRodFuel;
+
+	//Clad temperature
+	Tclad[i] = qdot/(h*harea) + T[i];
+	
+    }
+}
+
 void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nData, double deltat, double *T, double *rho, double *mu, double *u, double eta, double Qdot, int iter)
 {
     double m1 = *m1dot;
@@ -22,7 +64,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 
     //------------------------------------------------------------------------//
     //Loop indexes
-    int i,j;
+    int i;
     double a,b,c;
     double vol;
     
@@ -181,7 +223,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     //------------------------------------------------------------------------//
     //RHS for Steam Generators -  Heat transfer term
     double Re, Pr;
-    double ktemp, cptemp, cvtemp;
+    double ktemp, cptemp;
     double dia;
     double area;
     double *B;
@@ -231,6 +273,8 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
     
     //------------------------------------------------------------------------//
     //Call solver for heat conduction in the core here
+    
+    
     double factor[4] = {0.586, 1.414, 1.414, 0.586};
     for(i=0; i<4; i++)
     {

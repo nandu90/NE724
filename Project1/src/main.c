@@ -141,6 +141,8 @@ int main(int argc, char **argv)
 	u[i] = ufromT(T[i]);
     }
 
+    double *Tclad;
+    allocator1(&Tclad, 4);
    
     double mcCheck;
     double change;
@@ -229,7 +231,6 @@ int main(int argc, char **argv)
     double eta = 0.0;
     deltat = 1.0/3600.0;
     double ramp = 0.01*power;
-    double totalTime = 2.0*60.0;
     t = 0.0;
     double Qdot;
     iter = 0;
@@ -282,16 +283,16 @@ int main(int argc, char **argv)
 	//------------------------------------------------------------------------//
 	//Solve the heat equation
 	//Adjust the eta value after the core has reached full power
-	if(fabs(massRateError) < 1e-8)
+	/*if(fabs(massRateError) < 1e-8)
 	{
 	    inTempError = inletTemp - T[0];
 	    printf("Node 0 temp is %.4f, required is %.4f and error is %.4f and eta value is %.4e\n",T[0], inletTemp, inTempError,eta);
 	    if(fabs(inTempError) > 1e-8)
 	    {
-		eta = 0.000000;
+		eta = 2.32E-04;
 		//eta = -0.001 * fabs(inTempError) *  inTempError/fabs(inTempError);
 	    }
-	}
+	    }*/
 	solveTemp(&m1dot, &m2dot, &mcdot, nData,  deltat, T, rho, mu,u, eta, Qdot, iter);
 	//------------------------------------------------------------------------//
 
@@ -328,6 +329,12 @@ int main(int argc, char **argv)
 	    {
 		printf("Temperature in node %d is %.4f\n",i,T[i]);
 	    }
+
+	    getCladTemp(mcdot, T, Tclad, mu, nData, Qdot);
+	    for(i=0 ; i<4; i++)
+	    {
+		printf("Node %d Clad temperature is %.4f and coolant temperature is %.4f\n",i,Tclad[i], T[i]);
+	    }
 	}
 
 	
@@ -354,6 +361,7 @@ int main(int argc, char **argv)
     deallocator1(&rho, 26);
     deallocator1(&mu, 26);
     deallocator1(&u, 26);
+    deallocator1(&Tclad, 4);
     //------------------------------------------------------------------------//
 
    
