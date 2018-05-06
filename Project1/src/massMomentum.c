@@ -48,8 +48,8 @@ void loopTerms(double *a, double *b, double deltat, struct nodeData *nData, doub
     double K;
     if(code == 1 && code2 == 1)
     {
-	Kplus = 1e16;
-	Kminus = 1e16;
+	Kplus = 0.00001;
+	Kminus = 0.00001;
     }
     
     //------------------------------------------------------------------------//
