@@ -267,7 +267,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	
 	if(plug == 1)
 	{
-	    UA[i] = (nSGTubes)*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	    UA[i] = (nSGTubes-nblock)*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
 	}
 	else
 	{
