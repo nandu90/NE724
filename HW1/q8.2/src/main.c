@@ -136,6 +136,12 @@ int main(int argc, char **argv)
 	phi[i] = 1.0;
     }
 
+    double *phipast;
+    allocator1(&phipast, tcells);
+    for(i=0; i<tcells; i++)
+    {
+	phipast[i] = 1.0;
+    }
     
 
     double *x;
@@ -150,7 +156,7 @@ int main(int argc, char **argv)
 
     double Cv = atof(argv[1]);
 
-    int scheme = atoi(argv[2]);
+   
     
     printf("Selected Courant Number is %.4f\n",Cv);
 
@@ -186,25 +192,11 @@ int main(int argc, char **argv)
 	{
 	    if(i == j)
 	    {
-		if(scheme == 2)
-		{
-		    A[i][j] = 1.0+Cv;
-		}
-		else if(scheme == 3)
-		{
-		    A[i][j] = 1.0+Cv*0.5;
-		}
+		A[i][j] = (3.0 + 2.0*Cv);
 	    }
 	    else if(j == i-1)
 	    {
-		if(scheme == 2)
-		{
-		    A[i][j] = -Cv;
-		}
-		else if(scheme == 3)
-		{
-		    A[i][j] = -0.5*Cv;
-		}
+		A[i][j] = -2.0*Cv;		
 	    }
 	}
     }
@@ -219,61 +211,29 @@ int main(int argc, char **argv)
 
     for(iter=0; iter<1000; iter++)
     {
-	if(scheme == 1)
+	
+  
+	//Construct the RHS Vector
+	for(i=0; i<cells; i++)
 	{
-	    for(i=1; i<tcells-1; i++)
+	    if(i==0)
 	    {
-		phinew[i] = phi[i] - Cv*(phi[i] - phi[i-1]);
+		B[i] = 4.0*phi[i+1] - phipast[i+1] + 2.0*Cv*phi[i];
+	    }
+	    else
+	    {
+		B[i] = 4.0*phi[i+1] - phipast[i+1];
 	    }
 	}
-
-	else if(scheme == 2)
+	
+	solveSystem(A, B, vector, cells);
+	
+	//Assign solved values back
+	for(i=0; i<cells; i++)
 	{
-	    //Construct the RHS Vector
-	    for(i=0; i<cells; i++)
-	    {
-		if(i==0)
-		{
-		    B[i] = phi[i+1] + Cv*phi[i];
-		}
-		else
-		{
-		    B[i] = phi[i+1];
-		}
-	    }
-
-	    solveSystem(A, B, vector, cells);
-	    
-	    //Assign solved values back
-	    for(i=0; i<cells; i++)
-	    {
-		phinew[i+1] = vector[i];  
-	    }
+	    phinew[i+1] = vector[i];  
 	}
-
-	else if(scheme == 3)
-	{
-	    //Construct the RHS Vector
-	    for(i=0; i<cells; i++)
-	    {
-		if(i==0)
-		{
-		    B[i] = 0.5*Cv*phi[i]+ 0.5*Cv*phi[i] - (0.5*Cv-1.0)*phi[i+1];
-		}
-		else
-		{
-		    B[i] = 0.5*Cv*phi[i] - (0.5*Cv-1.0)*phi[i+1];
-		}
-	    }
-
-	    solveSystem(A, B, vector, cells);
-	    
-	    //Assign solved values back
-	    for(i=0; i<cells; i++)
-	    {
-		phinew[i+1] = vector[i];  
-	    }
-	}
+	
 
 
 	applyBC(phinew, tcells);
@@ -300,6 +260,7 @@ int main(int argc, char **argv)
 
 	for(i=0; i<tcells; i++)
 	{
+	    phipast[i] = phi[i];
 	    phi[i] = phinew[i];
 	}
 

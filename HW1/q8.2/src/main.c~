@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     int iter = 0;
 
 
-    double tol = 1e-8;
+    double tol = 1e-6;
 
     double res, prevres;
 
