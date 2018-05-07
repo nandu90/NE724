@@ -364,7 +364,7 @@ int main(int argc, char **argv)
     
     //Time realted variables   
     deltat = 0.01/3600.0;
-    double totalTime = 0.2/3600.0;
+    double totalTime = 1000.0/3600.0;
     t = 0.0;
     double trip = 2.0/3600.0;
     //double toperate = 365.0*24.0*60.0*60.0;   //Operating time in secs
@@ -378,7 +378,9 @@ int main(int argc, char **argv)
     double Tsatsys = 652.744;
     //double maxclad;
 
-    int nblock = 500;
+    int nblock = 0;
+
+    int maxnblock = 10000;
 
     double origm1 = m1dot;
     double origm2 = m2dot;
@@ -386,8 +388,11 @@ int main(int argc, char **argv)
     
     while(t<totalTime)
     {
+	
+	nblock = min(nblock+1, maxnblock);
 	iter++;
 	printf("Iteration number %d\n",iter);
+	printf("Number of pipes blocked = %d\n",nblock);
 	//------------------------------------------------------------------------//
 	//Determine power value
 	if(t<=trip)
@@ -455,6 +460,10 @@ int main(int argc, char **argv)
 	printf("Loop 2: Orig = %.4e and new = %.4e\n", origm2, m2dot);
 	printf("Core: Orig = %.4e and new = %.4e\n", origmc, mcdot);
 	printf("The flow rate is reduced to %.2e%%\n", (origm1 - m1dot)*100.0/origm1);
+	if((origm1 - m1dot)*100.0/origm1 > 10.0)
+	{
+	    maxnblock = nblock;
+	}
 	//------------------------------------------------------------------------//
 
 	//------------------------------------------------------------------------//

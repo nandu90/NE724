@@ -65,7 +65,7 @@ double TfromU(double u)
 
     value = a*u*u*u + b*u*u + c*u + d;
 
-    if(plugme == 1)value = u;
+    //if(plugme == 1)value = u;
     return value;
 }
 

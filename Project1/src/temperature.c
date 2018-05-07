@@ -124,8 +124,8 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 
 	if(i>=5 && i<=11 && plug == 1)
 	{
-	    area = area/nSGTubes;
-	    area = area*((double)(nSGTubes - nblock));
+	    //area = area/nSGTubes;
+	    //area = area*((double)(nSGTubes - nblock));
 	}
 	
 	vol = nData[i+1].len * area;
@@ -256,8 +256,8 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	area = nData[i+1].Ax;
 	if(plug == 1)
 	{
-	    area = area/nSGTubes;
-	    area = area*((double)(nSGTubes - nblock));
+	    //area = area/nSGTubes;
+	    //area = area*((double)(nSGTubes - nblock));
 	    
 	}
 	Re = fabs(dia*m1/(area*mu[i]));
@@ -267,7 +267,7 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 	
 	if(plug == 1)
 	{
-	    UA[i] = (nSGTubes - nblock)*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
+	    UA[i] = (nSGTubes)*PI*dia*nData[i+1].len/((1.0/hcoeff[i]) + eta);
 	}
 	else
 	{
@@ -340,10 +340,10 @@ void solveTemp(double *m1dot, double *m2dot, double *mcdot, struct nodeData *nDa
 
 	B[i] = qdot[i] + vol*rho[i]*u[i]/deltat;
 
-	if(iter == 5 && plug == 1)
+	/*if(iter == 5 && plug == 1)
 	{
 	    printf("%d RHS is %.4e and qdot is %.4e\n",i, B[i],qdot[i]);
-	}
+	    }*/
 	
     }
     //if(iter == 5 && plug == 1)exit(1);
